@@ -1,24 +1,28 @@
 package com.bootcamp.mscustomer.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.UUID;
 
-@Getter
-@Setter
+
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@Table(name = "customers")
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @NotBlank
     @Column(nullable = false)
-    private String name;
+    private String firstname;
 
     @NotBlank
     @Column(nullable = false)
@@ -32,4 +36,12 @@ public class Customer {
     @Email
     @Column(nullable = false)
     private String email;
+
+    public Customer(UUID id, String firstname, String lastname, String dni, String email) {
+        this.id = id;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.dni = dni;
+        this.email = email;
+    }
 }

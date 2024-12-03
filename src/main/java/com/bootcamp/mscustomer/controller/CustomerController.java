@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("/customers")
 public class CustomerController {
 
     @Autowired
@@ -30,24 +30,22 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable String id) {
-        Optional<Customer> customer = customerService.getCustomerById(id);
-
-        if (customer.isPresent()) {
-            return ResponseEntity.ok(customer.get());
-        } else {
+    public ResponseEntity<Customer> getCustomerById(@PathVariable UUID id) {
+        try {
+            Customer customer = customerService.getCustomerById(id);
+            return ResponseEntity.ok(customer);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@Valid @PathVariable String id, @RequestBody Customer customer) {
+    public ResponseEntity<Customer> updateCustomer(@Valid @PathVariable UUID id, @RequestBody Customer customer) {
         return ResponseEntity.ok(customerService.updateCustomer(id, customer));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable String id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
     }

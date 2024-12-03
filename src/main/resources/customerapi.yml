@@ -6,10 +6,10 @@ info:
 servers:
   - url: http://localhost:8086
 paths:
-  /customer:
+  /customers:
     post:
       tags:
-        - customer
+        - customers
       summary: Create a new customer to the banking system
       description: Create a new customer in the banking system
       operationId: createCustomer
@@ -18,7 +18,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: '#/components/schemas/CustomersRequest'
         required: true
       responses:
         '201':
@@ -26,7 +26,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: '#/components/schemas/CustomersResponse'
         '400':
           description: Error in input data
           content:
@@ -38,20 +38,20 @@ paths:
                   summary: Duplicate DNI
                   value:
                     code: 400
-                    message: "El DNI ya está registrado en el sistema"
+                    message: 'El DNI ya está registrado en el sistema'
                 invalidEmailFormat:
                   summary: Invalid email format
                   value:
                     code: 400
-                    message: "El formato del email no es válido"
+                    message: 'El formato del email no es válido'
                 missingFields:
                   summary: Missing required fields
                   value:
                     code: 400
-                    message: "Los campos obligatorios están incompletos"
+                    message: 'Los campos obligatorios están incompletos'
     get:
       tags:
-        - customer
+        - customers
       summary: Get list of all customers
       description: Returns a list of all registered customers
       operationId: customersList
@@ -63,13 +63,18 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Customer'
+                  $ref: '#/components/schemas/CustomersResponse'
         '500':
           description: Error getting customers
-  /customer/{id}:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers/{id}:
     get:
       tags:
-        - customer
+        - customers
       summary: Get details of a customer by their ID.
       description: ''
       operationId: getCustomersByDni
@@ -80,13 +85,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '200':
           description: Customer information successfully obtained
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: '#/components/schemas/CustomersResponse'
         '404':
           description: Customer not found
           content:
@@ -95,7 +101,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     put:
       tags:
-        - customer
+        - customers
       summary: Update a customer
       description: ''
       operationId: updateCustomer
@@ -106,16 +112,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: Update an existing customer in the system
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: '#/components/schemas/CustomersRequest'
       responses:
         '200':
           description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomersResponse'
         '400':
           description: Error in input data
           content:
@@ -127,17 +138,17 @@ paths:
                   summary: Duplicate DNI
                   value:
                     code: 400
-                    message: "El DNI ya esta registrado en el sistema"
+                    message: 'El DNI ya esta registrado en el sistema'
                 invalidEmailFormat:
                   summary: Invalid email format
                   value:
                     code: 400
-                    message: "El formato del email no es valido"
+                    message: 'El formato del email no es valido'
                 missingFields:
                   summary: Missing required fields
                   value:
                     code: 400
-                    message: "Los campos oblicatorios estan incompletos"
+                    message: 'Los campos oblicatorios estan incompletos'
         '404':
           description: Customer not found
           content:
@@ -146,7 +157,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - customer
+        - customers
       summary: Delete customer
       description: ''
       operationId: deleteCustomer
@@ -157,6 +168,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '204':
           description: Client deleted successfully
@@ -171,12 +183,12 @@ paths:
                   summary: Client has active accounts
                   value:
                     code: 400
-                    message: "El cliente no puede eliminarse porque tiene cuentas activas"
+                    message: 'El cliente no puede eliminarse porque tiene cuentas activas'
                 invalidId:
                   summary: Invalid ID
                   value:
                     code: 400
-                    message: "El ID proporcionado no es válido"
+                    message: 'El ID proporcionado no es válido'
         '404':
           description: Customer not found
           content:
@@ -185,31 +197,49 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Customer:
+    CustomersRequest:
       type: object
       required:
-        - firstName
-        - lastName
+        - firstname
+        - lastname
         - dni
         - email
       properties:
-        id:
-          type: string
-          example: 10
-        firstName:
+        firstname:
           type: string
           example: 'Jess'
-        lastName:
+        lastname:
           type: string
-          example: 'Cuellar'
+          example: 'Torres'
         dni:
           type: string
           example: '01928374'
           description: The user's DNI must be unique
         email:
           type: string
-          format: 'email'
-          example: jcuellar@email.com
+          format: email
+          example: 'jtorres@email.com'
+    CustomersResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        firstname:
+          type: string
+          example: 'Jess'
+        lastname:
+          type: string
+          example: 'Torres'
+        dni:
+          type: string
+          example: '01928374'
+          description: The user's DNI must be unique
+        email:
+          type: string
+          format: email
+          example: 'jtorres@email.com'
     Error:
       type: object
       properties:

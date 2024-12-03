@@ -8,15 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    @Autowired
-    public  CustomerServiceImpl(CustomerRepository customerRepository) {
+    public CustomerServiceImpl(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
 
@@ -24,6 +23,12 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer createCustomer(Customer customer) {
         if (customerRepository.existsByDni(customer.getDni())) {
             throw new IllegalArgumentException("El DNI ya está registrado");
+        }
+        // ID generado si es null o ignorado si se envia en el Request Body
+        if (customer.getId() == null) {
+            customer.setId(UUID.randomUUID());
+        } else {
+            customer.setId(UUID.randomUUID()); // Ignora ID, genera uno nuevo
         }
         return customerRepository.save(customer);
     }
@@ -35,27 +40,31 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
-    public Optional<Customer> getCustomerById(String id) {
-        return customerRepository.findById(id);
-    }
-
-
-    @Override
-    public Customer updateCustomer(String id, Customer customerDetails) {
+    public Customer getCustomerById(UUID id) {
         return customerRepository.findById(id)
-                .map(customer -> {
-                    customer.setName(customerDetails.getName());
-                    customer.setLastname(customerDetails.getLastname());
-                    customer.setDni(customerDetails.getDni());
-                    customer.setEmail(customerDetails.getEmail());
-                    return customerRepository.save(customer);
-                })
-                .orElseThrow(() -> new RuntimeException("Cliento con ID: " + id + " no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Cliente no entoncrado"));
     }
 
 
     @Override
-    public void deleteCustomer(String id) {
+    public Customer updateCustomer(UUID id, Customer customerDetails) {
+        // Verifica si el cliente existe antes de actualizar
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente con ID: " + id + " no encontrado"));
+
+        // Actualiza los detalles del cliente
+        customer.setFirstname(customerDetails.getFirstname());
+        customer.setLastname(customerDetails.getLastname());
+        customer.setDni(customerDetails.getDni());
+        customer.setEmail(customerDetails.getEmail());
+
+        return customerRepository.save(customer);
+    }
+
+
+    @Override
+    public void deleteCustomer(UUID id) {
+        // Verifica si el cliente existe y si tiene cuentas activas antes de eliminar
         customerRepository.findById(id)
                 .ifPresentOrElse(
                         customer -> {
@@ -70,8 +79,11 @@ public class CustomerServiceImpl implements CustomerService {
                 );
     }
 
+
     private boolean customerHasActiveAccounts(Customer customer) {
         return false;
-        //return accountRepository.existsByCustomerId(customer.getId());
+        // return accountService.hasActiveAccounts(customer.getId());
     }
+
 }
+
